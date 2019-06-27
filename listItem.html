@@ -40,9 +40,6 @@
         </div>
 
 
-
-
-
 </div>
 </body>
 
@@ -51,7 +48,6 @@
     //全局商品数组
     var g_itemList = [];
 $(function () {
-
 
     //添加创建商品 点击事件
         $.ajax({
@@ -76,7 +72,6 @@ $(function () {
             }
             }
 
-
         );
 
         return false;
@@ -92,7 +87,7 @@ $(function () {
                 "<td><img src='"+itemVO.imgUrl+"'/></td>" +
                 "<td>"+itemVO.stock+"</td>" +
                 "<td>"+itemVO.sales+"</td>" +
-                "</tr>"
+                "</tr>";
 
             $("#container").append($(dom));
             $("#itemDetail"+itemVO.id).on("click", function (e) {

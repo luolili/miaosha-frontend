@@ -54,14 +54,12 @@
 $(function () {
 
     $("#register").on("click", function () {
-
         window.location.href = "register.html";
     });
     //添加otp 点击事件
     $("#login").on("click", function () {
         var telphone = $("#telphone").val();
         var password = $("#password").val();
-
 
         if (telphone == null || telphone == "") {
             alert("手机号不能为空");
@@ -78,7 +76,6 @@ $(function () {
             contentType: "application/x-www-form-urlencoded",
             url: "http://localhost:8090/user/login",
             data:{"telphone": telphone,"password":password},//传参
-
 
             xhrFields: {withCredentials:true},//呼应后台CrossOrigin的配置
             success: function(data) {
