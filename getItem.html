@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- beautify-->
+    <link href="static/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+    <link href="static/assets/global/css/components.css" rel="stylesheet" type="text/css"/>
+    <link href="static/assets/admin/pages/css/login.css" rel="stylesheet" type="text/css"/>
+
+
+    <!--notice:there is no / before static-->
+    <script src="static/assets/global/plugins/jquery-1.11.0.min.js"></script>
+</head>
+<body class="login">
+
+<div class="content">
+    <h3 class="form-title">商品详情</h3>
+
+    <div class="form-group" id="promoStartTimeContainer">
+        <label style="color: red" class="control-label">商品秒杀时间</label>
+        <div>
+            <p style="color: red" class="form-control" type="text" placeholder="商品秒杀时间" name="startTime" id="startTime"></p>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <label class="control-label">商品名称</label>
+        <div>
+            <input class="form-control" type="text" placeholder="商品名称" name="title" id="title"/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label">商品描述</label>
+        <div>
+            <input class="form-control" type="text" placeholder="商品描述" name="description" id="description"/>
+        </div>
+    </div>
+
+    <div id="normalPriceContainer" class="form-group">
+        <label class="control-label">商品价格</label>
+        <div>
+            <input class="form-control" type="text" placeholder="商品价格" name="price" id="price"/>
+        </div>
+    </div>
+
+    <div class="form-group" id="promoPriceContainer">
+        <label style="color: red" class="control-label">商品秒杀价格</label>
+        <div>
+            <input style="color: red" class="form-control" type="text" placeholder="商品秒杀价格" name="promoPrice" id="promoPrice"/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label">商品图片</label>
+        <div>
+            <input class="form-control" type="text" placeholder="商品图片" name="imgUrl" id="imgUrl"/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label">库存</label>
+        <div>
+            <input class="form-control" type="text" placeholder="库存" name="stock" id="stock"/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label">销量</label>
+        <div>
+            <input class="form-control" type="text" placeholder="销量" name="sales" id="sales"/>
+        </div>
+    </div>
+
+
+    <div>
+        <button  id="createorder" type="submit">
+
+            下单
+        </button>
+    </div>
+
+
+</div>
+</body>
+
+<script>
+
+    $("#createorder").on("click", function () {
+
+        $.ajax({
+            type: "post",
+            contentType: "application/x-www-form-urlencoded",
+            url: "http://localhost:8090/order/create",
+            data:{"itemId":g_itemVO.id, "amount":1},
+
+            xhrFields: {withCredentials:true},//呼应后台CrossOrigin的配置
+            success: function(data) {
+                reloadDom();
+                if (data.status=="success") {
+                    alert("下单成功");
+
+                }else {
+                    alert("下单失败-，原因为："+data.data.errMsg);
+                    if (data.data.errCode == 200003) {
+                        window.location.href = "login.html";
+                    }
+                }
+            },
+            error:function(data) {
+                alert("下单失败,原因为"+data.responseText);
+
+            }
+        });
+    });
+
+
+
+    var g_itemVO = {};
+    $(function () {
+
+        var id=6;
+
+            $.ajax({
+                    type: "get",
+                    url: "http://localhost:8090/item/get",
+                    data:{"id":id},
+
+                    xhrFields: {withCredentials:true},//呼应后台CrossOrigin的配置
+                    success: function(data) {
+
+
+                        if (data.status=="success") {
+                            g_itemVO = data.data;
+                            reloadDom();
+                            setInterval(reloadDom, 1000);//定时器：在到达开始时间的时候， 按钮自动可以点击下单
+                            alert("查询商品成功");
+
+                        }else {
+                            alert("查询商品失败-，原因为："+data.data.errMsg);
+                        }
+                    },
+                    error:function(data) {
+                        alert("查询商品失败,原因为"+data.responseText);
+
+                    }
+                }
+
+            );
+
+            return false;
+    });
+
+    function reloadDom() {
+        console.log("vo")
+        console.log(g_itemVO)
+
+        $("#title").val(g_itemVO.title);
+        $("#description").val(g_itemVO.description);
+        $("#price").val(g_itemVO.price);
+        $("#imgUrl").attr("src",g_itemVO.imgUrl);
+        $("#stock").val(g_itemVO.stock);
+        $("#sales").val(g_itemVO.sales);
+
+        //秒杀活动
+
+        if (g_itemVO.promoStatus == 1) {
+            //秒杀活动还未开始,显示开始时间
+            var startTime = g_itemVO.startTime.replace(new RegExp("-","gm"),"/");
+            startTime = (new Date(startTime)).getTime();
+            //获取当前时间
+            var now = Date.parse(new Date());
+            var delta = (startTime - now) / 1000;
+
+            if (delta <= 0) {
+                //活动开始了
+                g_itemVO.promoStatus = 2;
+                reloadDom();
+            }
+            $("#startTime").text("将于"+g_itemVO.startTime+"开始售卖！倒计时："+delta + "秒");
+            $("#promoPrice").val(g_itemVO.promoPrice);
+            $("#createorder").attr("disabled", true);
+        } else if (g_itemVO.promoStatus == 2) {
+            $("#startTime").val("秒杀正在进行中");
+            $("#createorder").attr("disabled", false);
+            $("#normalPriceContainer").hide();
+        }
+
+    }
+</script>
+</html>
